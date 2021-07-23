@@ -49,14 +49,14 @@ return {
   },
   icon_size = 64,
   icon_mipmaps = 4,
-  icon_path = "__IndustrialDisplayPlates__/graphics/icons",
-  sprites_path = "__IndustrialDisplayPlates__/graphics/entities",
-  sound_path = "__IndustrialDisplayPlates__/sound",
+  icon_path = "__DisplayPlates__/graphics/icons",
+  sprites_path = "__DisplayPlates__/graphics/entities",
+  sound_path = "__DisplayPlates__/sound",
   base_sound_path = "__base__/sound",
   core_sound_path = "__core__/sound",
   base_icons_path = "__base__/graphics/icons",
   custom_gui = "DID_gui",
-  mod_name = "IndustrialDisplayPlates",
+  mod_name = "DisplayPlates",
   pending_translation_value = ""
 }
 
