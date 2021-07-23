@@ -131,120 +131,7 @@ local function destroy_render(entity)
   end
 end
 
-local function get_all_children_with_style(root, style, children)
-  if not root then
-    return nil
-  end
-  if children == nil then
-    children = {}
-  end
-  for _, child in pairs(root.children) do
-    if child.style.name == style then
-      table.insert(children, child)
-    end
-    children = get_all_children_with_style(child, style, children)
-  end
-  return children
-end
-
-local function get_all_children_with_name(root, name, children)
-  if children == nil then
-    children = {}
-  end
-  if not root or not root.children then
-    return children
-  end
-  for _, child in pairs(root.children) do
-    if child.name and string.find(child.name, name, 1, true) then
-      table.insert(children, child)
-    end
-    children = get_all_children_with_name(child, name, children)
-  end
-  return children
-end
-
-local function display_filter_tabs(player, filter)
-  local textfield = player.gui.screen[DID.custom_gui]["display-header"]["display-search-textfield"]
-  local tabs = player.gui.screen[DID.custom_gui]["inner-frame"]["display-tabs"]
-  local selected = tabs.selected_tab_index
-  for index, tab in pairs(tabs.tabs) do
-    tabs.selected_tab_index = index -- shenanigans
-    local count = 0
-    for _, child in pairs(get_all_children_with_name(tab.content, "display-symbol")) do
-      if child.sprite and string.find(string.lower(child.sprite), string.lower(filter), 1, true) then
-        count = count + 1
-        child.visible = true
-      else
-        child.visible = false
-      end
-    end
-    tab.tab.enabled = (count > 0)
-    local name = splitstring(tab.tab.name, ":")
-  end
-  tabs.selected_tab_index = selected or 1 -- end of shenanigans
-  if textfield.visible then
-    textfield.focus()
-  end -- fix textfield focus
-end
-
-local function toggle_search(player, element, override)
-  local textfield = player.gui.screen[DID.custom_gui]["display-header"]["display-search-textfield"]
-  if textfield then
-    textfield.visible = override or not textfield.visible
-    element.style = (override or textfield.visible) and "display_small_button_active" or "display_small_button"
-    if not textfield.visible and not override then
-      textfield.text = ""
-      display_filter_tabs(player, "")
-    else
-      textfield.focus()
-    end
-  end
-end
-
 local display_gui_click = {
-  ["display-symbol"] = function(event, sprite)
-    local player = game.players[event.player_index]
-    local last_display = get_global_player_info(player.index, "last_display")
-    if last_display then
-      destroy_render(last_display)
-      render_overlay_sprite(last_display, event.element.sprite)
-      for _, child in pairs(get_all_children_with_style(player.gui.screen[DID.custom_gui], "display_button_selected")) do
-        child.style = "quick_bar_slot_button"
-        child.ignored_by_interaction = false
-      end
-      event.element.style = "display_button_selected"
-      event.element.ignored_by_interaction = true
-      local map_button = player.gui.screen[DID.custom_gui]["display-header"]["display-map-marker"]
-      if map_button then
-        if not map_button.enabled then
-          map_button.enabled = true
-        elseif get_has_map_marker(last_display) then
-          local spritetype, spritename = get_render_sprite_info(last_display)
-          change_map_markers(last_display, spritetype, spritename)
-        end
-      end
-    end
-  end,
-  ["display-search-button"] = function(event)
-    toggle_search(game.players[event.player_index], event.element)
-  end,
-  ["display-map-marker"] = function(event)
-    local last_display = get_global_player_info(event.player_index, "last_display")
-    if last_display then
-      if get_has_map_marker(last_display) then
-        event.element.style = "display_small_button"
-        remove_markers(last_display)
-        local player = game.players[event.player_index]
-        player.play_sound {
-          path = "map-marker-pong"
-        }
-      else
-        local spritetype, spritename = get_render_sprite_info(last_display)
-        add_map_marker(last_display, spritetype, spritename)
-        event.element.style = "display_small_button_active"
-      end
-    end
-  end,
   ["display-header-close"] = function(event)
     gui_close(event)
   end
@@ -299,6 +186,80 @@ local function gui_click(event)
   end
 end
 
+local function gui_elem_changed(event)
+  -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
+  local player = game.players[event.player_index]
+  local last_display = get_global_player_info(player.index, "last_display")
+  local frame = player.gui.screen[DID.custom_gui]
+  if frame and (not last_display or not last_display.valid) then
+    frame.destroy()
+    return
+  end
+
+  if event.element.name == "choose-signal" then
+    if event.element.elem_value == nil then
+      -- Signal was deselected, cleanup and exit
+      if last_display then
+        destroy_render(last_display)
+        if get_has_map_marker(last_display) then
+          remove_markers(last_display)
+        end
+      end
+
+      return
+    end
+
+    local sprite = event.element.elem_value.type .. "/" .. event.element.elem_value.name
+    if last_display then
+      destroy_render(last_display)
+      render_overlay_sprite(last_display, sprite)
+
+      local switch = player.gui.screen[DID.custom_gui]["inner-frame"]["table"]["display-map-marker"]
+      if (switch.switch_state == "right") then
+        local spritetype, spritename = get_render_sprite_info(last_display)
+
+        if get_has_map_marker(last_display) then
+          change_map_markers(last_display, spritetype, spritename)
+        else
+          add_map_marker(last_display, spritetype, spritename)
+        end
+      end
+    end
+  end
+end
+
+local function gui_switch_state_changed(event)
+  -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
+  local player = game.players[event.player_index]
+  local last_display = get_global_player_info(player.index, "last_display")
+  local frame = player.gui.screen[DID.custom_gui]
+  if frame and (not last_display or not last_display.valid) then
+    frame.destroy()
+    return
+  end
+
+  if event.element.name == "display-map-marker" then
+    local last_display = get_global_player_info(event.player_index, "last_display")
+    if last_display then
+
+      if (event.element.switch_state == "left") then
+        if get_has_map_marker(last_display) then
+          remove_markers(last_display)
+          local player = game.players[event.player_index]
+          player.play_sound {
+            path = "map-marker-pong"
+          }
+        end
+      end
+
+      if (event.element.switch_state == "right") then
+        local spritetype, spritename = get_render_sprite_info(last_display)
+        add_map_marker(last_display, spritetype, spritename)
+      end
+    end
+  end
+end
+
 local function create_display_gui(player, selected)
 
   if not player or not selected then
@@ -317,8 +278,8 @@ local function create_display_gui(player, selected)
 
   -- get markers and currently rendered sprite
   local markers = next(get_map_markers(selected)) ~= nil
-  local sname, stype = get_render_sprite_info(selected)
-  local render_sprite = (sname and stype) and sname .. "/" .. stype or nil
+  local stype, sname = get_render_sprite_info(selected)
+  -- local render_sprite = (sname and stype) and stype .. "/" .. sname or nil
 
   -- create frame
   frame = player.gui.screen.add {
@@ -357,37 +318,9 @@ local function create_display_gui(player, selected)
     style = "draggable_space_header"
   }
   filler.style.natural_height = 24
+  filler.style.minimal_width = 32
   filler.style.horizontally_stretchable = true
   filler.drag_target = frame
-
-  -- search textfield
-  local search_textfield = header.add {
-    name = "display-search-textfield",
-    type = "textfield",
-    style = "search_popup_textfield"
-  }
-  search_textfield.style.height = 24
-  search_textfield.style.width = 100
-  search_textfield.visible = false
-
-  -- search button
-  local search_button = header.add {
-    name = "display-search-button",
-    type = "sprite-button",
-    sprite = "utility/search_white",
-    style = "display_small_button",
-    tooltip = {"gui.search-with-focus", "__CONTROL__focus-search__"}
-  }
-
-  -- map marker button
-  local map_button = header.add {
-    name = "display-map-marker",
-    type = "sprite-button",
-    sprite = "display-map-marker",
-    style = markers and "display_small_button_active" or "display_small_button",
-    tooltip = {"controls.display-map-marker"}
-  }
-  map_button.enabled = (find_entity_render(selected) ~= nil)
 
   -- close button
   local close_button = header.add {
@@ -407,104 +340,43 @@ local function create_display_gui(player, selected)
   }
   content_frame.style.top_margin = 8
 
-  -- tabbed pane
-  local display_tabs = content_frame.add {
-    name = "display-tabs",
-    type = "tabbed-pane",
-    style = "display_tabbed_pane"
+  local table = content_frame.add {
+    type = "table",
+    name = "table",
+    column_count = 2
   }
+  table.style.cell_padding = 2
+  table.style.horizontally_stretchable = true
+  table.style.bottom_padding = 8
 
-  -- build a table of info about existing items/fluids
-  -- groups of subgroups of sprites -> localised_string
-  local button_table = {}
-  for prototype_type, prototypes in pairs(DID.elem_prototypes) do
-    for _, prototype in pairs(game[prototypes]) do
-      if not DID.displays[prototype.name] and
-        not ((prototype_type == "item" and prototype.has_flag("hidden")) or
-          (prototype_type == "fluid" and prototype.hidden)) then
-        local group = (prototype.group.name == "fluids") and "intermediate-products" or prototype.group.name
-        if not DID.group_blacklist[group] then
-          if button_table[group] == nil then
-            button_table[group] = {}
-          end
-          if button_table[group][prototype.subgroup.name] == nil then
-            button_table[group][prototype.subgroup.name] = {}
-          end
-          button_table[group][prototype.subgroup.name][prototype_type .. "/" .. prototype.name] =
-            prototype.localised_name
-        end
-      end
-    end
-  end
+  local label = table.add {
+    type = "label",
+    caption = {"controls.signal"}
+  }
+  label.style.top_margin = 5
 
-  -- determine the biggest tab size
-  local max_rows = 0
-  for group, subgroups in pairs(button_table) do
-    local rows = 0
-    for subgroup, entries in pairs(subgroups) do
-      rows = rows + math.ceil(table_size(entries) / DID.grid_columns)
-    end
-    max_rows = math.max(rows, max_rows)
-  end
+  local choose_signal = table.add {
+    type = "choose-elem-button",
+    name = 'choose-signal',
+    elem_type = "signal"
+  }
+  choose_signal.elem_value = (sname and stype) and {
+    name = sname,
+    type = stype
+  } or nil
 
-  -- set up tabs
-  local tab_index = 1
-  for group, subgroups in pairs(button_table) do
-    -- this tab
-    local this_tab = false
-    local tab = display_tabs.add {
-      type = "tab",
-      name = "display-tab:" .. group,
-      caption = "[img=item-group/" .. group .. "]",
-      tooltip = game.item_group_prototypes[group].localised_name,
-      style = "display_tab"
-    }
-    tab.style.width = (420 / table_size(button_table))
-    local tab_content = display_tabs.add {
-      type = "frame",
-      direction = "vertical",
-      name = "display-group:" .. group,
-      style = "display_tab_deep_frame"
-    }
-    tab_content.style.width = 400
-
-    -- add table of buttons
-    for subgroup, entries in pairs(subgroups) do
-      local subgroup_table = tab_content.add {
-        type = "table",
-        column_count = DID.grid_columns,
-        style = "display_buttons"
-      }
-      local count = 0
-      for sprite, localised_name in pairs(entries) do
-        -- add the button
-        local button = subgroup_table.add {
-          type = "sprite-button",
-          name = "display-symbol:" .. sprite,
-          sprite = sprite,
-          style = (render_sprite and render_sprite == sprite) and "display_button_selected" or "quick_bar_slot_button",
-          tooltip = localised_name
-        }
-        button.ignored_by_interaction = (render_sprite and render_sprite == sprite)
-        if not this_tab and (render_sprite and render_sprite == sprite) then
-          this_tab = true
-        end
-        count = count + 1
-      end
-    end
-    display_tabs.add_tab(tab, tab_content)
-
-    -- switch selection to this tab if rendered sprite exists
-    if this_tab then
-      display_tabs.selected_tab_index = tab_index
-    end
-    tab_index = tab_index + 1
-  end
-
-  -- make all tabs as big as biggest
-  for _, tab in pairs(display_tabs.tabs) do
-    tab.content.style.height = math.min(640, max_rows * 40)
-  end
+  local labelMap = table.add {
+    type = "label",
+    caption = {"controls.display-map-marker"}
+  }
+  labelMap.style.top_margin = 5
+  -- map marker button
+  table.add {
+    name = "display-map-marker",
+    type = "switch",
+    switch_state = markers and "right" or "left",
+    tooltip = {"controls.display-map-marker"}
+  }
 end
 
 local function player_cannot_reach(player, entity)
@@ -532,10 +404,10 @@ end
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
--- event handlers
-
 -- script.on_configuration_changed(reset_globals)
 script.on_event(defines.events.on_gui_closed, gui_close)
+script.on_event(defines.events.on_gui_elem_changed, gui_elem_changed)
+script.on_event(defines.events.on_gui_switch_state_changed, gui_switch_state_changed)
 script.on_event(defines.events.on_gui_click, gui_click)
 script.on_event(defines.events.on_player_mined_entity, event_raised_destroy, get_display_event_filter())
 script.on_event(defines.events.on_robot_mined_entity, event_raised_destroy, get_display_event_filter())
@@ -571,15 +443,6 @@ script.on_event("deadlock-open-gui", function(event)
     else
       player_cannot_reach(player, selected)
     end
-  end
-end)
-
-script.on_event("deadlock-focus-search", function(event)
-  local player = game.players[event.player_index]
-  local frame = player.gui.screen[DID.custom_gui]
-  if frame then
-    local search = player.gui.screen[DID.custom_gui]["display-header"]["display-search-button"]
-    toggle_search(player, search, true)
   end
 end)
 
@@ -631,13 +494,6 @@ script.on_event(defines.events.on_player_changed_position, function(event)
     if last_display and last_display.valid and not player.can_reach_entity(last_display) then
       gui_close(event)
     end
-  end
-end)
-
-script.on_event(defines.events.on_gui_text_changed, function(event)
-  local player = game.players[event.player_index]
-  if player and event.element.name == "display-search-textfield" then
-    display_filter_tabs(player, event.element.text)
   end
 end)
 

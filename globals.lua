@@ -47,13 +47,6 @@ return {
     medium = 2,
     small = 1
   },
-  elem_prototypes = {
-    item = "item_prototypes",
-    fluid = "fluid_prototypes"
-  },
-  group_blacklist = {
-    ["creative-mod_creative-tools"] = true
-  },
   icon_size = 64,
   icon_mipmaps = 4,
   icon_path = "__IndustrialDisplayPlates__/graphics/icons",
@@ -64,7 +57,6 @@ return {
   base_icons_path = "__base__/graphics/icons",
   custom_gui = "DID_gui",
   mod_name = "IndustrialDisplayPlates",
-  grid_columns = 10,
   pending_translation_value = ""
 }
 

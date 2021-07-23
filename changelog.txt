@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.0
+Date: 2021-07-23
+  Changes:
+    - Create fork from https://mods.factorio.com/mod/IndustrialDisplayPlates
+    - Updated GUI using native Signal selector
+---------------------------------------------------------------------------------------------------
 Version: 1.1.0
 Date: 2020-12-02
   Changes:
