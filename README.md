@@ -2,9 +2,13 @@
 
 <img src="https://raw.githubusercontent.com/Flydiverny/IndustrialDisplayPlates/master/thumbnail.png" width="128" height="128">
 
+# Display Plates
+
+Mainly doing this to try out Factorio modding and I wanted to be able to select from more signals! May or may not be fully working currently, but published regardless so I can use it in my server!
+
 ### How to change from IndustrialDisplayPlates -> DisplayPlates
 
-Switching from IndustrialDisplayPlates, if you want to try out this mod, please enable it side by side with IndustrialDisplayPlates, that allows this mod to copy over the state from IndustrialDisplayPlates, if you disable IndustrialDisplayPlates first you will have to reconfigure all of your existing plates!
+If you want to try out this mod and are switching from IndustrialDisplayPlates, please enable it side by side with IndustrialDisplayPlates, that allows this mod to copy over the state from IndustrialDisplayPlates, if you disable IndustrialDisplayPlates first you will have to reconfigure all of your existing plates!
 
 ### Features
 
