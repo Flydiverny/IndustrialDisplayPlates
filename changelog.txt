@@ -1,7 +1,9 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.2.2
-Date: 2021-07-23
+Version: 1.2.3
+Date: 2021-07-24
   Changes:
+    - Attempt to migrate renders from IndustrialDisplayPlates when both mods are run side by side.
+    - Add missing english text
     - Fix paths after mod rename
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.1
