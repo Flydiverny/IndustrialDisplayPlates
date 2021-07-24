@@ -2,6 +2,10 @@
 
 <img src="https://raw.githubusercontent.com/Flydiverny/IndustrialDisplayPlates/master/thumbnail.png" width="128" height="128">
 
+### How to change from IndustrialDisplayPlates -> DisplayPlates
+
+Switching from IndustrialDisplayPlates, if you want to try out this mod, please enable it side by side with IndustrialDisplayPlates, that allows this mod to copy over the state from IndustrialDisplayPlates, if you disable IndustrialDisplayPlates first you will have to reconfigure all of your existing plates!
+
 ### Features
 
 Big, medium and small signs to display item and fluid icons. Can be used to blueprint map markers.
