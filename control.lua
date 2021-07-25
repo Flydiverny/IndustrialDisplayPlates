@@ -383,6 +383,8 @@ local function create_display_gui(player, selected)
     name = "display-map-marker",
     type = "switch",
     switch_state = markers and "right" or "left",
+    left_label_caption = {"controls.off"},
+    right_label_caption = {"controls.on"},
     tooltip = {"controls.display-map-marker"}
   }
 end
