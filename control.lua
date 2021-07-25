@@ -37,9 +37,10 @@ end
 
 local function add_map_marker(entity, icon_type, icon_name)
   if icon_type and icon_name then
+    local map_type = (icon_type == "virtual-signal") and "virtual" or icon_type
     entity.force.add_chart_tag(entity.surface, {
       icon = {
-        type = icon_type,
+        type = map_type,
         name = icon_name
       },
       position = entity.position
@@ -53,11 +54,12 @@ local function add_map_marker(entity, icon_type, icon_name)
 end
 
 local function change_map_markers(entity, icon_type, icon_name)
+  local map_type = (icon_type == "virtual-signal") and "virtual" or icon_type
   local markers = get_map_markers(entity)
   if markers then
     for _, marker in pairs(markers) do
       marker.icon = {
-        type = icon_type,
+        type = map_type,
         name = icon_name
       }
     end
@@ -90,7 +92,7 @@ local function get_render_sprite_info(entity)
   if id then
     local strings = splitstring(rendering.get_sprite(id), "/")
     if #strings == 2 then
-      return strings[1], strings[2]
+      return strings[1], strings[2], strings[1] == 'virtual-signal' and 'virtual' or strings[1]
     end
   end
   return nil, nil
@@ -209,19 +211,26 @@ local function gui_elem_changed(event)
       return
     end
 
-    local sprite = event.element.elem_value.type .. "/" .. event.element.elem_value.name
+    local spritename = event.element.elem_value.name or ''
+    local typename = event.element.elem_value.type or ''
+    local spritetype = typename == 'virtual' and 'virtual-signal' or typename
+    local sprite = spritetype .. "/" .. spritename
+
+    -- game.print("DisplayPlates: Plz help sprite: " .. sprite .. ' (' .. typename .. ") & (" .. spritename .. ")")
+    -- for i, v in pairs(event.element.elem_value) do
+    --   game.print("" .. i .. ' - ' .. v .. "")
+    -- end
+
     if last_display then
       destroy_render(last_display)
       render_overlay_sprite(last_display, sprite)
 
       local switch = player.gui.screen[DID.custom_gui]["inner-frame"]["table"]["display-map-marker"]
       if (switch.switch_state == "right") then
-        local spritetype, spritename = get_render_sprite_info(last_display)
-
         if get_has_map_marker(last_display) then
-          change_map_markers(last_display, spritetype, spritename)
+          change_map_markers(last_display, typename, spritename)
         else
-          add_map_marker(last_display, spritetype, spritename)
+          add_map_marker(last_display, typename, spritename)
         end
       end
     end
@@ -278,8 +287,7 @@ local function create_display_gui(player, selected)
 
   -- get markers and currently rendered sprite
   local markers = next(get_map_markers(selected)) ~= nil
-  local stype, sname = get_render_sprite_info(selected)
-  -- local render_sprite = (sname and stype) and stype .. "/" .. sname or nil
+  local stype, sname, itype = get_render_sprite_info(selected)
 
   -- create frame
   frame = player.gui.screen.add {
@@ -362,7 +370,7 @@ local function create_display_gui(player, selected)
   }
   choose_signal.elem_value = (sname and stype) and {
     name = sname,
-    type = stype
+    type = itype
   } or nil
 
   local labelMap = table.add {
