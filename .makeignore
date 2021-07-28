@@ -1,0 +1,7 @@
+.git
+.makeignore
+.gitignore
+Makefile
+graphics/modportal
+dist
+*.zip
