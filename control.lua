@@ -170,25 +170,31 @@ local function event_raised_destroy(event)
 end
 
 local function gui_click(event)
-  -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
-  if event.player_index then
-    local player = game.players[event.player_index]
-    local frame = player.gui.screen[DID.custom_gui]
-    local last_display = get_global_player_info(player.index, "last_display")
-    if frame and (not last_display or not last_display.valid) then
-      frame.destroy()
-      return
-    end
-  end
   -- is there a method for this element?
   local clicked = splitstring(event.element.name, ":")
   if display_gui_click[clicked[1]] then
+
+    -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
+    if event.player_index then
+      local player = game.players[event.player_index]
+      local frame = player.gui.screen[DID.custom_gui]
+      local last_display = get_global_player_info(player.index, "last_display")
+      if frame and (not last_display or not last_display.valid) then
+        frame.destroy()
+        return
+      end
+    end
+
+    -- Call the click listener
     display_gui_click[clicked[1]](event, clicked[2])
     return
   end
 end
 
 local function gui_elem_changed(event)
+  if event.element.name ~= "choose-signal" then
+    return
+  end
   -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
   local player = game.players[event.player_index]
   local last_display = get_global_player_info(player.index, "last_display")
@@ -238,6 +244,9 @@ local function gui_elem_changed(event)
 end
 
 local function gui_switch_state_changed(event)
+  if event.element.name ~= "display-map-marker" then
+    return
+  end
   -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
   local player = game.players[event.player_index]
   local last_display = get_global_player_info(player.index, "last_display")
