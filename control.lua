@@ -24,7 +24,7 @@ local function set_global_player_info(player_index, info, value)
 end
 
 local function splitstring(s, d)
-  result = {};
+  local result = {};
   for m in (s .. d):gmatch("(.-)" .. d) do
     table.insert(result, m);
   end
