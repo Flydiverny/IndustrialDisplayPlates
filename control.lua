@@ -516,3 +516,24 @@ script.on_event(defines.events.on_player_joined_game, function(event)
 end)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
+
+remote.add_interface("DisplayPlates", {
+    get_sprite = function(event)
+        if event and event.entity and event.entity.valid then
+            local spritetype, spritename = get_render_sprite_info(event.entity)
+            return {
+                spritetype = spritetype,
+                spritename = spritename
+            }
+        else
+            return nil
+        end
+    end,
+
+    set_sprite = function(event)
+        if event and event.entity and event.entity.valid and event.sprite and game.is_valid_sprite_path(event.sprite) then
+            destroy_render(event.entity)
+            render_overlay_sprite(event.entity, event.sprite)
+        end
+    end
+})

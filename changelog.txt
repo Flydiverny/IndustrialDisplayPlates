@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.3.0
+Date: 2022-08-25
+  Changes:
+    - Add remote interface allowing other mods to set the sprite on a Display Plate, thanks to billbo99!
+---------------------------------------------------------------------------------------------------
 Version: 1.2.8
 Date: 2022-08-25
   Changes:
