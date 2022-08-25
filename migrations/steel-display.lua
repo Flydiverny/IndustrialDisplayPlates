@@ -1,4 +1,31 @@
-local DID = require("globals")
+-- Unlock tech should match globals.lua, requiring it in here breaks interactive tutorials.
+
+local DID = {
+    displays = {
+        ["iron-display-small"] = {
+            IR_unlock = "ir2-iron-milestone"
+        },
+        ["iron-display-medium"] = {
+            IR_unlock = "ir2-iron-milestone"
+        },
+        ["iron-display"] = {
+            IR_unlock = "ir2-iron-milestone"
+        },
+        ["steel-display-small"] = {
+            unlock = "steel-processing",
+            IR_unlock = "ir2-steel-milestone"
+        },
+        ["steel-display-medium"] = {
+            unlock = "steel-processing",
+            IR_unlock = "ir2-steel-milestone"
+        },
+        ["steel-display"] = {
+            unlock = "steel-processing",
+            IR_unlock = "ir2-steel-milestone"
+        }
+    }
+}
+
 
 for index, force in pairs(game.forces) do
   for display, displaydata in pairs(DID.displays) do
