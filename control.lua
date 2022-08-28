@@ -112,17 +112,19 @@ local function gui_close(event)
 end
 
 local function render_overlay_sprite(entity, sprite)
-  if game.is_valid_sprite_path(sprite) then
-    local size = (string.find(entity.name, "small") and 0.65) or (string.find(entity.name, "medium") and 1.5) or 2.5
-    rendering.draw_sprite {
-      sprite = sprite,
-      x_scale = size,
-      y_scale = size,
-      render_layer = "lower-object",
-      target = entity,
-      surface = entity.surface
-    }
+  if not game.is_valid_sprite_path(sprite) then
+    return
   end
+
+  local size = (string.find(entity.name, "small") and 0.65) or (string.find(entity.name, "medium") and 1.5) or 2.5
+  rendering.draw_sprite {
+    sprite = sprite,
+    x_scale = size,
+    y_scale = size,
+    render_layer = "lower-object",
+    target = entity,
+    surface = entity.surface
+  }
 end
 
 local function render_overlay(entity, spritetype, spritename)
