@@ -523,7 +523,6 @@ end)
 
 script.on_event(defines.events.on_player_joined_game, function(event)
   if game.active_mods["IndustrialDisplayPlates"] then
-    local player = game.players[event.player_index]
     game.print(
       "DisplayPlates: Renders should have been copied from IndustrialDisplayPlates, save the game, and disable IndustrialDisplayPlates for DisplayPlates to take over")
   end
