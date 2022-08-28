@@ -35,9 +35,12 @@ local function get_map_markers(entity)
   return entity.force.find_chart_tags(entity.surface, entity.bounding_box)
 end
 
+local function get_map_type(icon_type)
+  return (icon_type == "virtual-signal") and "virtual" or icon_type
+end
 local function add_map_marker(entity, icon_type, icon_name)
   if icon_type and icon_name then
-    local map_type = (icon_type == "virtual-signal") and "virtual" or icon_type
+    local map_type = get_map_type(icon_type)
     entity.force.add_chart_tag(entity.surface, {
       icon = {
         type = map_type,
@@ -54,7 +57,7 @@ local function add_map_marker(entity, icon_type, icon_name)
 end
 
 local function change_map_markers(entity, icon_type, icon_name)
-  local map_type = (icon_type == "virtual-signal") and "virtual" or icon_type
+  local map_type = get_map_type(icon_type)
   local markers = get_map_markers(entity)
   if markers then
     for _, marker in pairs(markers) do
@@ -92,7 +95,7 @@ local function get_render_sprite_info(entity)
   if id then
     local strings = splitstring(rendering.get_sprite(id), "/")
     if #strings == 2 then
-      return strings[1], strings[2], strings[1] == 'virtual-signal' and 'virtual' or strings[1]
+      return strings[1], strings[2], get_map_type(strings[1])
     end
   end
   return nil, nil
