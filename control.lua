@@ -146,6 +146,24 @@ local function is_a_display(entity)
   return DID.displays[entity.name] ~= nil
 end
 
+local function get_gui(player_index)
+  return game.players[player_index].gui.screen[DID.custom_gui]
+end
+
+-- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
+local function destroy_old_gui(player_index)
+  local player = game.players[player_index]
+  local last_display = get_global_player_info(player.index, "last_display")
+  local frame = get_gui(player.index)
+  if frame and (not last_display or not last_display.valid) then
+    frame.destroy()
+    return true
+  end
+
+  return false
+end
+
+--
 local function get_display_event_filter()
   local filters = {}
   for display, _ in pairs(DID.displays) do
@@ -164,7 +182,7 @@ local function event_raised_destroy(event)
     -- close any/all open guis
     for _, player in pairs(game.players) do
       local last_display = get_global_player_info(player.index, "last_display")
-      local frame = player.gui.screen[DID.custom_gui]
+      local frame = get_gui(player.index)
       if frame and event.entity == last_display then
         frame.destroy()
       end
@@ -182,14 +200,8 @@ local function gui_click(event)
   end
 
   -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
-  if event.player_index then
-    local player = game.players[event.player_index]
-    local frame = player.gui.screen[DID.custom_gui]
-    local last_display = get_global_player_info(player.index, "last_display")
-    if frame and (not last_display or not last_display.valid) then
-      frame.destroy()
-      return
-    end
+  if destroy_old_gui(event.player_index) then
+    return
   end
 
   -- Call the click listener
@@ -201,22 +213,24 @@ local function gui_elem_changed(event)
     return
   end
 
+
   -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
-  local player = game.players[event.player_index]
-  local last_display = get_global_player_info(player.index, "last_display")
-  local frame = player.gui.screen[DID.custom_gui]
-  if frame and (not last_display or not last_display.valid) then
-    frame.destroy()
+  if destroy_old_gui(event.player_index) then
+    return
+  end
+
+  local last_display = get_global_player_info(event.player_index, "last_display")
+
+  if not last_display then
+    -- Nothing to do if we don't have the display plate
     return
   end
 
   if event.element.elem_value == nil then
     -- Signal was deselected, cleanup and exit
-    if last_display then
-      destroy_render(last_display)
-      if get_has_map_marker(last_display) then
-        remove_markers(last_display)
-      end
+    destroy_render(last_display)
+    if get_has_map_marker(last_display) then
+      remove_markers(last_display)
     end
 
     return
@@ -227,22 +241,15 @@ local function gui_elem_changed(event)
   local spritetype = typename == 'virtual' and 'virtual-signal' or typename
   local sprite = spritetype .. "/" .. spritename
 
-  -- game.print("DisplayPlates: Plz help sprite: " .. sprite .. ' (' .. typename .. ") & (" .. spritename .. ")")
-  -- for i, v in pairs(event.element.elem_value) do
-  --   game.print("" .. i .. ' - ' .. v .. "")
-  -- end
+  destroy_render(last_display)
+  render_overlay_sprite(last_display, sprite)
 
-  if last_display then
-    destroy_render(last_display)
-    render_overlay_sprite(last_display, sprite)
-
-    local switch = player.gui.screen[DID.custom_gui]["inner-frame"]["table"]["display-map-marker"]
-    if (switch.switch_state == "right") then
-      if get_has_map_marker(last_display) then
-        change_map_markers(last_display, typename, spritename)
-      else
-        add_map_marker(last_display, typename, spritename)
-      end
+  local switch = get_gui(event.player_index)["inner-frame"]["table"]["display-map-marker"]
+  if (switch.switch_state == "right") then
+    if get_has_map_marker(last_display) then
+      change_map_markers(last_display, typename, spritename)
+    else
+      add_map_marker(last_display, typename, spritename)
     end
   end
 end
@@ -253,35 +260,34 @@ local function gui_switch_state_changed(event)
   end
 
   -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
-  local player = game.players[event.player_index]
-  local last_display = get_global_player_info(player.index, "last_display")
-  local frame = player.gui.screen[DID.custom_gui]
-  if frame and (not last_display or not last_display.valid) then
-    frame.destroy()
+  if destroy_old_gui(event.player_index) then
     return
   end
 
   local last_display = get_global_player_info(event.player_index, "last_display")
-  if last_display then
-    if (event.element.switch_state == "left") then
-      if get_has_map_marker(last_display) then
-        remove_markers(last_display)
-        local player = game.players[event.player_index]
-        player.play_sound {
-          path = "map-marker-pong"
-        }
-      end
-    end
+  if not last_display then
+    -- Nothing to do if we don't have the display plate
+    return
+  end
 
-    if (event.element.switch_state == "right") then
-      local spritetype, spritename = get_render_sprite_info(last_display)
-      add_map_marker(last_display, spritetype, spritename)
+
+  if (event.element.switch_state == "left") then
+    if get_has_map_marker(last_display) then
+      remove_markers(last_display)
+      local player = game.players[event.player_index]
+      player.play_sound {
+        path = "map-marker-pong"
+      }
     end
+  end
+
+  if (event.element.switch_state == "right") then
+    local spritetype, spritename = get_render_sprite_info(last_display)
+    add_map_marker(last_display, spritetype, spritename)
   end
 end
 
 local function create_display_gui(player, selected)
-
   if not player or not selected then
     return
   end
@@ -419,13 +425,8 @@ local function set_up_display_from_ghost(entity, tags)
   end
 end
 
--- local function reset_globals()
--- global.translations = nil
--- end
-
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
--- script.on_configuration_changed(reset_globals)
 script.on_event(defines.events.on_gui_closed, gui_close)
 script.on_event(defines.events.on_gui_elem_changed, gui_elem_changed)
 script.on_event(defines.events.on_gui_switch_state_changed, gui_switch_state_changed)
@@ -515,7 +516,7 @@ end)
 
 script.on_event(defines.events.on_player_changed_position, function(event)
   local player = game.players[event.player_index]
-  if player.gui.screen[DID.custom_gui] then
+  if get_gui(event.player_index) then
     local last_display = get_global_player_info(event.player_index, "last_display")
     if last_display and last_display.valid and not player.can_reach_entity(last_display) then
       gui_close(event)
