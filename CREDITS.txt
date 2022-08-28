@@ -1,3 +1,9 @@
+IndustrialDisplayPlates was taken over by Wyrrrd which was later forked as Display Plates by Flydiverny.
+
+Original credits from IndustrialDisplayPlates below:
+
+----
+
 Industrial Displays by Deadlock989
 Copyright (C) Deadlock989 2020
 
