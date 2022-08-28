@@ -489,6 +489,11 @@ script.on_event(defines.events.on_player_setup_blueprint, function(event)
     blueprint = player.cursor_stack
   end
   if blueprint then
+    -- Dont crash when updating blueprint
+    if blueprint.get_blueprint_entity_count() == 0 then
+      player.print({ "blueprints.no-update" })
+      return
+    end
     for index, entity in pairs(event.mapping.get()) do
       local stype, sname = get_render_sprite_info(entity)
       if stype and sname then
