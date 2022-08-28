@@ -195,6 +195,7 @@ local function gui_elem_changed(event)
   if event.element.name ~= "choose-signal" then
     return
   end
+
   -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
   local player = game.players[event.player_index]
   local last_display = get_global_player_info(player.index, "last_display")
@@ -204,40 +205,38 @@ local function gui_elem_changed(event)
     return
   end
 
-  if event.element.name == "choose-signal" then
-    if event.element.elem_value == nil then
-      -- Signal was deselected, cleanup and exit
-      if last_display then
-        destroy_render(last_display)
-        if get_has_map_marker(last_display) then
-          remove_markers(last_display)
-        end
-      end
-
-      return
-    end
-
-    local spritename = event.element.elem_value.name or ''
-    local typename = event.element.elem_value.type or ''
-    local spritetype = typename == 'virtual' and 'virtual-signal' or typename
-    local sprite = spritetype .. "/" .. spritename
-
-    -- game.print("DisplayPlates: Plz help sprite: " .. sprite .. ' (' .. typename .. ") & (" .. spritename .. ")")
-    -- for i, v in pairs(event.element.elem_value) do
-    --   game.print("" .. i .. ' - ' .. v .. "")
-    -- end
-
+  if event.element.elem_value == nil then
+    -- Signal was deselected, cleanup and exit
     if last_display then
       destroy_render(last_display)
-      render_overlay_sprite(last_display, sprite)
+      if get_has_map_marker(last_display) then
+        remove_markers(last_display)
+      end
+    end
 
-      local switch = player.gui.screen[DID.custom_gui]["inner-frame"]["table"]["display-map-marker"]
-      if (switch.switch_state == "right") then
-        if get_has_map_marker(last_display) then
-          change_map_markers(last_display, typename, spritename)
-        else
-          add_map_marker(last_display, typename, spritename)
-        end
+    return
+  end
+
+  local spritename = event.element.elem_value.name or ''
+  local typename = event.element.elem_value.type or ''
+  local spritetype = typename == 'virtual' and 'virtual-signal' or typename
+  local sprite = spritetype .. "/" .. spritename
+
+  -- game.print("DisplayPlates: Plz help sprite: " .. sprite .. ' (' .. typename .. ") & (" .. spritename .. ")")
+  -- for i, v in pairs(event.element.elem_value) do
+  --   game.print("" .. i .. ' - ' .. v .. "")
+  -- end
+
+  if last_display then
+    destroy_render(last_display)
+    render_overlay_sprite(last_display, sprite)
+
+    local switch = player.gui.screen[DID.custom_gui]["inner-frame"]["table"]["display-map-marker"]
+    if (switch.switch_state == "right") then
+      if get_has_map_marker(last_display) then
+        change_map_markers(last_display, typename, spritename)
+      else
+        add_map_marker(last_display, typename, spritename)
       end
     end
   end
@@ -247,6 +246,7 @@ local function gui_switch_state_changed(event)
   if event.element.name ~= "display-map-marker" then
     return
   end
+
   -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
   local player = game.players[event.player_index]
   local last_display = get_global_player_info(player.index, "last_display")
@@ -256,24 +256,21 @@ local function gui_switch_state_changed(event)
     return
   end
 
-  if event.element.name == "display-map-marker" then
-    local last_display = get_global_player_info(event.player_index, "last_display")
-    if last_display then
-
-      if (event.element.switch_state == "left") then
-        if get_has_map_marker(last_display) then
-          remove_markers(last_display)
-          local player = game.players[event.player_index]
-          player.play_sound {
-            path = "map-marker-pong"
-          }
-        end
+  local last_display = get_global_player_info(event.player_index, "last_display")
+  if last_display then
+    if (event.element.switch_state == "left") then
+      if get_has_map_marker(last_display) then
+        remove_markers(last_display)
+        local player = game.players[event.player_index]
+        player.play_sound {
+          path = "map-marker-pong"
+        }
       end
+    end
 
-      if (event.element.switch_state == "right") then
-        local spritetype, spritename = get_render_sprite_info(last_display)
-        add_map_marker(last_display, spritetype, spritename)
-      end
+    if (event.element.switch_state == "right") then
+      local spritetype, spritename = get_render_sprite_info(last_display)
+      add_map_marker(last_display, spritetype, spritename)
     end
   end
 end
