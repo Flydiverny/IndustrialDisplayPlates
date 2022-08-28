@@ -249,6 +249,11 @@ data:extend({{
   key_sequence = "",
   linked_game_control = "open-gui"
 }, {
+  type = "custom-input",
+  name = "display-plates-toggle-map-marker",
+  key_sequence = "",
+  linked_game_control = "rotate"
+}, {
   type = "font",
   name = "did-tab-font",
   from = "default",

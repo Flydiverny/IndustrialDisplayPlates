@@ -8,6 +8,9 @@ local DID = require("globals")
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- functions
+local function get_gui(player_index)
+  return game.players[player_index].gui.screen[DID.custom_gui]
+end
 
 local function get_global_player_info(player_index, info)
   if global[info] == nil then
@@ -102,10 +105,9 @@ local function get_render_sprite_info(entity)
 end
 
 local function gui_close(event)
-  local player = game.players[event.player_index]
-  local frame = player.gui.screen[DID.custom_gui]
+  local frame = get_gui(event.player_index)
   if frame then
-    set_global_player_info(event.player_index, "display_gui_location", player.gui.screen[DID.custom_gui].location)
+    set_global_player_info(event.player_index, "display_gui_location", frame.location)
     return frame.destroy()
   end
   return false
@@ -144,10 +146,6 @@ local display_gui_click = {
 
 local function is_a_display(entity)
   return DID.displays[entity.name] ~= nil
-end
-
-local function get_gui(player_index)
-  return game.players[player_index].gui.screen[DID.custom_gui]
 end
 
 -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
@@ -425,6 +423,20 @@ local function set_up_display_from_ghost(entity, tags)
   end
 end
 
+local function handle_event_if_reachable(event, handler)
+  local player = game.players[event.player_index]
+  if player.cursor_stack and player.cursor_stack.valid_for_read then
+    return
+  end
+  local selected = player and player.selected
+  if selected and selected.valid and is_a_display(selected) then
+    if player.can_reach_entity(selected) then
+      handler(event, player, selected)
+    else
+      player_cannot_reach(player, selected)
+    end
+  end
+end
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 script.on_event(defines.events.on_gui_closed, gui_close)
@@ -454,20 +466,29 @@ script.on_event(defines.events.script_raised_revive, function(event)
 end)
 
 script.on_event("display-plates-open-gui", function(event)
-  local player = game.players[event.player_index]
-  if player.cursor_stack and player.cursor_stack.valid_for_read then
-    return
-  end
-  local selected = player and player.selected
-  if selected and selected.valid and is_a_display(selected) then
-    if player.can_reach_entity(selected) then
-      create_display_gui(player, selected)
-    else
-      player_cannot_reach(player, selected)
-    end
-  end
+  handle_event_if_reachable(event, function(_, player, selected)
+    create_display_gui(player, selected)
+  end)
 end)
 
+script.on_event("display-plates-toggle-map-marker", function(event)
+  handle_event_if_reachable(event, function(_, player, selected)
+    -- get markers and currently rendered sprite
+    local markers = next(get_map_markers(selected)) ~= nil
+    local stype, sname = get_render_sprite_info(selected)
+
+    if not markers then
+      add_map_marker(selected, stype, sname)
+    else
+      remove_markers(selected)
+      player.play_sound {
+        path = "map-marker-pong"
+      }
+    end
+  end)
+end)
+
+--
 script.on_event(defines.events.on_entity_settings_pasted, function(event)
   if event.destination and event.destination.valid and event.source and event.source.valid and
     is_a_display(event.destination) and is_a_display(event.source) then
