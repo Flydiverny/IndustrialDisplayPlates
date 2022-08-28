@@ -139,9 +139,7 @@ local function destroy_render(entity)
 end
 
 local display_gui_click = {
-  ["display-header-close"] = function(event)
-    gui_close(event)
-  end
+  ["display-header-close"] = gui_close
 }
 
 local function is_a_display(entity)
