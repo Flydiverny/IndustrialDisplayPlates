@@ -450,7 +450,7 @@ script.on_event(defines.events.script_raised_revive, function(event)
   end
 end)
 
-script.on_event("deadlock-open-gui", function(event)
+script.on_event("display-plates-open-gui", function(event)
   local player = game.players[event.player_index]
   if player.cursor_stack and player.cursor_stack.valid_for_read then
     return

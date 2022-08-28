@@ -245,14 +245,9 @@ add_styles({
 
 data:extend({{
   type = "custom-input",
-  name = "deadlock-open-gui",
+  name = "display-plates-open-gui",
   key_sequence = "",
   linked_game_control = "open-gui"
-}, {
-  type = "custom-input",
-  name = "deadlock-focus-search",
-  key_sequence = "",
-  linked_game_control = "focus-search"
 }, {
   type = "font",
   name = "did-tab-font",
