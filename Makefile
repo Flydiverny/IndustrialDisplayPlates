@@ -21,6 +21,6 @@ dist: clean
 
 sync: dist
 ifndef FACTORIO_MOD_DIR
-	$(error FACTORIO_MOD_DIR is undefined)
+$(error FACTORIO_MOD_DIR is undefined)
 endif
 	rsync -avr --delete dist/$(RELEASE_NAME)/ $(FACTORIO_MOD_DIR)/$(DIST_NAME)
