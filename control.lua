@@ -519,7 +519,9 @@ script.on_event(defines.events.on_player_setup_blueprint, function(event)
   if blueprint then
     -- Dont crash when updating blueprint
     if blueprint.get_blueprint_entity_count() == 0 then
-      player.print({ "blueprints.no-update" })
+      if player.mod_settings["display-plates-no-update"].value then
+        player.print({ "blueprints.no-update" })
+      end
       return
     end
     for index, entity in pairs(event.mapping.get()) do
