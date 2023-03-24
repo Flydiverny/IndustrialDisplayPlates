@@ -20,122 +20,131 @@ end
 local dimensions = {
   [1] = {
     width = 80,
-    height = 80
+    height = 80,
   },
   [2] = {
     width = 134,
-    height = 134
+    height = 134,
   },
   [3] = {
     width = 196,
-    height = 196
-  }
+    height = 196,
+  },
 }
 
 local shadow_dimensions = {
   [1] = {
     width = 80,
     height = 80,
-    sprite = "display-shadow-small"
+    sprite = "display-shadow-small",
   },
   [2] = {
     width = 146,
     height = 134,
-    sprite = "display-shadow-medium"
+    sprite = "display-shadow-medium",
   },
   [3] = {
     width = 204,
     height = 204,
-    sprite = "display-shadow"
-  }
+    sprite = "display-shadow",
+  },
 }
 
-data:extend({{
-  name = "display-plates",
-  type = "item-subgroup",
-  group = "logistics",
-  order = "z[display-plates]"
-}})
+data:extend({
+  {
+    name = "display-plates",
+    type = "item-subgroup",
+    group = "logistics",
+    order = "z[display-plates]",
+  },
+})
 
 local count = 1
 for display, displaydata in pairs(DID.displays) do
   local size = (string.find(display, "small") and 1) or (string.find(display, "medium") and 2) or 3
   local box_size = size * 0.5
-  data:extend({{
-    name = display,
-    type = "simple-entity-with-owner",
-    localised_description = {"entity-description.display"},
-    render_layer = "lower-object",
-    icon = get_icon_path(display),
-    icon_size = DID.icon_size,
-    icon_mipmaps = DID.icon_mipmaps,
-    corpse = "small-remnants",
-    fast_replaceable_group = "display",
-    minable = {
-      mining_time = 0.2,
-      result = display
+  data:extend({
+    {
+      name = display,
+      type = "simple-entity-with-owner",
+      localised_description = { "entity-description.display" },
+      render_layer = "lower-object",
+      icon = get_icon_path(display),
+      icon_size = DID.icon_size,
+      icon_mipmaps = DID.icon_mipmaps,
+      corpse = "small-remnants",
+      fast_replaceable_group = "display",
+      minable = {
+        mining_time = 0.2,
+        result = display,
+      },
+      max_health = (10 + size * 30) * 4,
+      flags = { "placeable-player", "placeable-neutral", "player-creation" },
+      collision_box = { { -box_size + 0.1, -box_size + 0.1 }, { box_size - 0.1, box_size - 0.1 } },
+      selection_box = { { -box_size, -box_size }, { box_size, box_size } },
+      collision_mask = { "object-layer", "water-tile" },
+      open_sound = {
+        filename = DID.base_sound_path .. "/machine-open.ogg",
+        volume = 0.5,
+      },
+      close_sound = {
+        filename = DID.base_sound_path .. "/machine-close.ogg",
+        volume = 0.5,
+      },
+      mined_sound = {
+        filename = DID.core_sound_path .. "/deconstruct-medium.ogg",
+      },
+      resistances = { {
+        type = "fire",
+        percent = 75,
+      } },
+      picture = {
+        layers = {
+          {
+            filename = string.format("%s/" .. display .. ".png", DID.sprites_path),
+            priority = "high",
+            shift = { 0, 0 },
+            height = dimensions[size].height,
+            width = dimensions[size].width,
+            scale = 0.5,
+          },
+          {
+            filename = string.format("%s/%s.png", DID.sprites_path, shadow_dimensions[size].sprite),
+            priority = "high",
+            shift = { 0, 0 },
+            height = shadow_dimensions[size].height,
+            width = shadow_dimensions[size].width,
+            scale = 0.5,
+            draw_as_shadow = true,
+          },
+        },
+      },
+      random_variation_on_create = false,
     },
-    max_health = (10 + size * 30) * 4,
-    flags = {"placeable-player", "placeable-neutral", "player-creation"},
-    collision_box = {{-box_size + 0.1, -box_size + 0.1}, {box_size - 0.1, box_size - 0.1}},
-    selection_box = {{-box_size, -box_size}, {box_size, box_size}},
-    collision_mask = {"object-layer", "water-tile"},
-    open_sound = {
-      filename = DID.base_sound_path .. "/machine-open.ogg",
-      volume = 0.5
+    {
+      type = "item",
+      name = display,
+      order = "z[" .. count .. "]",
+      subgroup = "display-plates",
+      stack_size = 100,
+      icon = get_icon_path(display),
+      icon_size = DID.icon_size,
+      icon_mipmaps = DID.icon_mipmaps,
+      place_result = display,
     },
-    close_sound = {
-      filename = DID.base_sound_path .. "/machine-close.ogg",
-      volume = 0.5
+    {
+      type = "recipe",
+      name = display,
+      order = "z[" .. count .. "]",
+      result = display,
+      result_count = 1,
+      category = "crafting",
+      enabled = (mods["IndustrialRevolution"] and (displaydata.IR_unlock == nil))
+        or (not mods["IndustrialRevolution"] and displaydata.unlock == nil),
+      ingredients = displaydata.ingredients,
+      energy_required = 1,
     },
-    mined_sound = {
-      filename = DID.core_sound_path .. "/deconstruct-medium.ogg"
-    },
-    resistances = {{
-      type = "fire",
-      percent = 75
-    }},
-    picture = {
-      layers = {{
-        filename = string.format("%s/" .. display .. ".png", DID.sprites_path),
-        priority = "high",
-        shift = {0, 0},
-        height = dimensions[size].height,
-        width = dimensions[size].width,
-        scale = 0.5
-      }, {
-        filename = string.format("%s/%s.png", DID.sprites_path, shadow_dimensions[size].sprite),
-        priority = "high",
-        shift = {0, 0},
-        height = shadow_dimensions[size].height,
-        width = shadow_dimensions[size].width,
-        scale = 0.5,
-        draw_as_shadow = true
-      }}
-    },
-    random_variation_on_create = false
-  }, {
-    type = "item",
-    name = display,
-    order = "z[" .. count .. "]",
-    subgroup = "display-plates",
-    stack_size = 100,
-    icon = get_icon_path(display),
-    icon_size = DID.icon_size,
-    icon_mipmaps = DID.icon_mipmaps,
-    place_result = display
-  }, {
-    type = "recipe",
-    name = display,
-    order = "z[" .. count .. "]",
-    result = display,
-    result_count = 1,
-    category = "crafting",
-    enabled = (mods["IndustrialRevolution"] and (displaydata.IR_unlock == nil)) or
-      (not mods["IndustrialRevolution"] and displaydata.unlock == nil),
-    ingredients = displaydata.ingredients,
-    energy_required = 1
-  }})
+  })
   count = count + 1
 end
 
@@ -157,7 +166,7 @@ add_styles({
       left_padding = 0,
       right_padding = 0,
       horizontal_align = "center",
-      type = "horizontal_flow_style"
+      type = "horizontal_flow_style",
     },
     tab_content_frame = {
       bottom_padding = 8,
@@ -165,11 +174,11 @@ add_styles({
       right_padding = 10,
       top_padding = 8,
       type = "frame_style",
-      graphical_set = data.raw["gui-style"]["default"]["filter_tabbed_pane"]["tab_content_frame"].graphical_set
+      graphical_set = data.raw["gui-style"]["default"]["filter_tabbed_pane"]["tab_content_frame"].graphical_set,
     },
     type = "tabbed_pane_style",
     parent = "filter_tabbed_pane",
-    width = 420
+    width = 420,
   },
   display_tab = {
     type = "tab_style",
@@ -179,7 +188,7 @@ add_styles({
     bottom_padding = 8,
     minimal_width = 32,
     horizontally_stretchable = "on",
-    horizontally_squashable = "on"
+    horizontally_squashable = "on",
   },
   display_frame = {
     type = "frame_style",
@@ -188,8 +197,8 @@ add_styles({
     vertical_flow_style = {
       type = "vertical_flow_style",
       vertical_spacing = 0,
-      horizontal_align = "center"
-    }
+      horizontal_align = "center",
+    },
   },
   display_inside_frame = {
     type = "frame_style",
@@ -197,23 +206,23 @@ add_styles({
     vertical_flow_style = {
       type = "vertical_flow_style",
       vertical_spacing = 0,
-      horizontal_align = "center"
+      horizontal_align = "center",
     },
-    bottom_padding = 8
+    bottom_padding = 8,
   },
   display_tab_deep_frame = {
     type = "frame_style",
-    parent = "slot_button_deep_frame"
+    parent = "slot_button_deep_frame",
   },
   display_buttons = {
     type = "table_style",
     horizontal_spacing = 0,
-    vertical_spacing = 0
+    vertical_spacing = 0,
   },
   display_button_selected = {
     type = "button_style",
     parent = "quick_bar_slot_button",
-    default_graphical_set = data.raw["gui-style"]["default"]["slot_button"].selected_graphical_set
+    default_graphical_set = data.raw["gui-style"]["default"]["slot_button"].selected_graphical_set,
   },
   display_fake_header = {
     type = "frame_style",
@@ -224,62 +233,69 @@ add_styles({
     vertical_align = "center",
     alignment = "right",
     left_margin = data.raw["gui-style"]["default"]["draggable_space"].left_margin,
-    right_margin = data.raw["gui-style"]["default"]["draggable_space"].right_margin
+    right_margin = data.raw["gui-style"]["default"]["draggable_space"].right_margin,
   },
   display_small_button = {
     type = "button_style",
     parent = "frame_action_button",
     left_margin = 1,
-    right_margin = 1
+    right_margin = 1,
   },
   display_small_button_active = {
     type = "button_style",
     parent = "display_small_button",
-    default_graphical_set = data.raw["gui-style"]["default"]["frame_button"].clicked_graphical_set
-  }
+    default_graphical_set = data.raw["gui-style"]["default"]["frame_button"].clicked_graphical_set,
+  },
 })
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- controls / misc media
 
-data:extend({{
-  type = "custom-input",
-  name = "display-plates-open-gui",
-  key_sequence = "",
-  linked_game_control = "open-gui"
-}, {
-  type = "custom-input",
-  name = "display-plates-toggle-map-marker",
-  key_sequence = "",
-  linked_game_control = "rotate"
-}, {
-  type = "font",
-  name = "did-tab-font",
-  from = "default",
-  size = 32
-}, {
-  type = "sprite",
-  name = "display-map-marker",
-  filename = get_icon_path("map-marker", 32),
-  priority = "extra-high",
-  width = 32,
-  height = 32,
-  flags = {"gui-icon"}
-}, {
-  type = "sound",
-  name = "map-marker-ping",
-  variations = {
-    filename = DID.sound_path .. "/ping.ogg",
-    volume = 0.9
-  }
-}, {
-  type = "sound",
-  name = "map-marker-pong",
-  variations = {
-    filename = DID.sound_path .. "/pong.ogg",
-    volume = 0.9
-  }
-}})
+data:extend({
+  {
+    type = "custom-input",
+    name = "display-plates-open-gui",
+    key_sequence = "",
+    linked_game_control = "open-gui",
+  },
+  {
+    type = "custom-input",
+    name = "display-plates-toggle-map-marker",
+    key_sequence = "",
+    linked_game_control = "rotate",
+  },
+  {
+    type = "font",
+    name = "did-tab-font",
+    from = "default",
+    size = 32,
+  },
+  {
+    type = "sprite",
+    name = "display-map-marker",
+    filename = get_icon_path("map-marker", 32),
+    priority = "extra-high",
+    width = 32,
+    height = 32,
+    flags = { "gui-icon" },
+  },
+  {
+    type = "sound",
+    name = "map-marker-ping",
+    variations = {
+      filename = DID.sound_path .. "/ping.ogg",
+      volume = 0.9,
+    },
+  },
+  {
+    type = "sound",
+    name = "map-marker-pong",
+    variations = {
+      filename = DID.sound_path .. "/pong.ogg",
+      volume = 0.9,
+    },
+  },
+})
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------

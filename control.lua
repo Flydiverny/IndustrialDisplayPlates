@@ -27,11 +27,11 @@ local function set_global_player_info(player_index, info, value)
 end
 
 local function splitstring(s, d)
-  local result = {};
+  local result = {}
   for m in (s .. d):gmatch("(.-)" .. d) do
-    table.insert(result, m);
+    table.insert(result, m)
   end
-  return result;
+  return result
 end
 
 local function get_map_markers(entity)
@@ -47,15 +47,15 @@ local function add_map_marker(entity, icon_type, icon_name)
     entity.force.add_chart_tag(entity.surface, {
       icon = {
         type = map_type,
-        name = icon_name
+        name = icon_name,
       },
-      position = entity.position
+      position = entity.position,
     })
-    entity.surface.play_sound {
+    entity.surface.play_sound({
       path = "map-marker-ping",
       position = entity.position,
-      volume_modifier = 1
-    }
+      volume_modifier = 1,
+    })
   end
 end
 
@@ -66,7 +66,7 @@ local function change_map_markers(entity, icon_type, icon_name)
     for _, marker in pairs(markers) do
       marker.icon = {
         type = map_type,
-        name = icon_name
+        name = icon_name,
       }
     end
   end
@@ -119,14 +119,14 @@ local function render_overlay_sprite(entity, sprite)
   end
 
   local size = (string.find(entity.name, "small") and 0.65) or (string.find(entity.name, "medium") and 1.5) or 2.5
-  rendering.draw_sprite {
+  rendering.draw_sprite({
     sprite = sprite,
     x_scale = size,
     y_scale = size,
     render_layer = "lower-object",
     target = entity,
-    surface = entity.surface
-  }
+    surface = entity.surface,
+  })
 end
 
 local function render_overlay(entity, spritetype, spritename)
@@ -141,7 +141,7 @@ local function destroy_render(entity)
 end
 
 local display_gui_click = {
-  ["display-header-close"] = gui_close
+  ["display-header-close"] = gui_close,
 }
 
 local function is_a_display(entity)
@@ -167,7 +167,7 @@ local function get_display_event_filter()
   for display, _ in pairs(DID.displays) do
     table.insert(filters, {
       filter = "name",
-      name = display
+      name = display,
     })
   end
   return filters
@@ -211,7 +211,6 @@ local function gui_elem_changed(event)
     return
   end
 
-
   -- check the entity this gui refers to - in multiplayer it could have been removed while player wasn't logged in
   if destroy_old_gui(event.player_index) then
     return
@@ -234,16 +233,16 @@ local function gui_elem_changed(event)
     return
   end
 
-  local spritename = event.element.elem_value.name or ''
-  local typename = event.element.elem_value.type or ''
-  local spritetype = typename == 'virtual' and 'virtual-signal' or typename
+  local spritename = event.element.elem_value.name or ""
+  local typename = event.element.elem_value.type or ""
+  local spritetype = typename == "virtual" and "virtual-signal" or typename
   local sprite = spritetype .. "/" .. spritename
 
   destroy_render(last_display)
   render_overlay_sprite(last_display, sprite)
 
   local switch = get_gui(event.player_index)["inner-frame"]["table"]["display-map-marker"]
-  if (switch.switch_state == "right") then
+  if switch.switch_state == "right" then
     if get_has_map_marker(last_display) then
       change_map_markers(last_display, typename, spritename)
     else
@@ -268,18 +267,17 @@ local function gui_switch_state_changed(event)
     return
   end
 
-
-  if (event.element.switch_state == "left") then
+  if event.element.switch_state == "left" then
     if get_has_map_marker(last_display) then
       remove_markers(last_display)
       local player = game.players[event.player_index]
-      player.play_sound {
-        path = "map-marker-pong"
-      }
+      player.play_sound({
+        path = "map-marker-pong",
+      })
     end
   end
 
-  if (event.element.switch_state == "right") then
+  if event.element.switch_state == "right" then
     local spritetype, spritename = get_render_sprite_info(last_display)
     add_map_marker(last_display, spritetype, spritename)
   end
@@ -305,12 +303,12 @@ local function create_display_gui(player, selected)
   local stype, sname, itype = get_render_sprite_info(selected)
 
   -- create frame
-  frame = player.gui.screen.add {
+  frame = player.gui.screen.add({
     type = "frame",
     name = DID.custom_gui,
     direction = "vertical",
-    style = "display_frame"
-  }
+    style = "display_frame",
+  })
 
   -- update frame location if cached
   if get_global_player_info(player.index, "display_gui_location") then
@@ -320,98 +318,98 @@ local function create_display_gui(player, selected)
   end
 
   -- header
-  local header = frame.add {
+  local header = frame.add({
     type = "flow",
     direction = "horizontal",
-    name = "display-header"
-  }
+    name = "display-header",
+  })
   header.style.bottom_padding = -4
   header.style.horizontally_stretchable = true
 
   -- title
-  header.add {
+  header.add({
     type = "label",
-    caption = {"controls.display-plate"},
-    style = "frame_title"
-  }
+    caption = { "controls.display-plate" },
+    style = "frame_title",
+  })
 
   -- "drag filler"
-  local filler = header.add {
+  local filler = header.add({
     type = "empty-widget",
-    style = "draggable_space_header"
-  }
+    style = "draggable_space_header",
+  })
   filler.style.natural_height = 24
   filler.style.minimal_width = 32
   filler.style.horizontally_stretchable = true
   filler.drag_target = frame
 
   -- close button
-  local close_button = header.add {
+  local close_button = header.add({
     name = "display-header-close",
     type = "sprite-button",
     style = "display_small_button",
     sprite = "utility/close_white",
-    tooltip = {"controls.close-gui"}
-  }
+    tooltip = { "controls.close-gui" },
+  })
 
   -- body frame
-  local content_frame = frame.add {
+  local content_frame = frame.add({
     type = "frame",
     name = "inner-frame",
     style = "display_inside_frame",
-    direction = "vertical"
-  }
+    direction = "vertical",
+  })
   content_frame.style.top_margin = 8
 
-  local table = content_frame.add {
+  local table = content_frame.add({
     type = "table",
     name = "table",
-    column_count = 2
-  }
+    column_count = 2,
+  })
   table.style.cell_padding = 2
   table.style.horizontally_stretchable = true
   table.style.bottom_padding = 8
 
-  local label = table.add {
+  local label = table.add({
     type = "label",
-    caption = {"controls.signal"}
-  }
+    caption = { "controls.signal" },
+  })
   label.style.top_margin = 5
 
-  local choose_signal = table.add {
+  local choose_signal = table.add({
     type = "choose-elem-button",
-    name = 'choose-signal',
-    elem_type = "signal"
-  }
+    name = "choose-signal",
+    elem_type = "signal",
+  })
   choose_signal.elem_value = (sname and stype) and {
     name = sname,
-    type = itype
+    type = itype,
   } or nil
 
-  local labelMap = table.add {
+  local labelMap = table.add({
     type = "label",
-    caption = {"controls.display-map-marker"}
-  }
+    caption = { "controls.display-map-marker" },
+  })
   labelMap.style.top_margin = 5
   -- map marker button
-  table.add {
+  table.add({
     name = "display-map-marker",
     type = "switch",
     switch_state = markers and "right" or "left",
-    left_label_caption = {"controls.off"},
-    right_label_caption = {"controls.on"},
-    tooltip = {"controls.display-map-marker"}
-  }
+    left_label_caption = { "controls.off" },
+    right_label_caption = { "controls.on" },
+    tooltip = { "controls.display-map-marker" },
+  })
 end
 
 local function player_cannot_reach(player, entity)
-  player.play_sound {
-    path = "utility/cannot_build"
-  }
-  player.create_local_flying_text {
-    text = {"cant-reach"},
-    position = entity.position
-  }
+  player.play_sound({
+    path = "utility/cannot_build",
+  })
+  player.create_local_flying_text({
+    text = { "cant-reach" },
+    position = entity.position,
+  })
 end
 
 local function set_up_display_from_ghost(entity, tags)
@@ -481,17 +479,23 @@ script.on_event("display-plates-toggle-map-marker", function(event)
       add_map_marker(selected, stype, sname)
     else
       remove_markers(selected)
-      player.play_sound {
-        path = "map-marker-pong"
-      }
+      player.play_sound({
+        path = "map-marker-pong",
+      })
     end
   end)
 end)
 
 --
 script.on_event(defines.events.on_entity_settings_pasted, function(event)
-  if event.destination and event.destination.valid and event.source and event.source.valid and
-    is_a_display(event.destination) and is_a_display(event.source) then
+  if
+    event.destination
+    and event.destination.valid
+    and event.source
+    and event.source.valid
+    and is_a_display(event.destination)
+    and is_a_display(event.source)
+  then
     local spritetype, spritename = get_render_sprite_info(event.source)
     if spritetype and spritename then
       destroy_render(event.destination)
@@ -548,29 +552,30 @@ end)
 script.on_event(defines.events.on_player_joined_game, function(event)
   if game.active_mods["IndustrialDisplayPlates"] then
     game.print(
-      "DisplayPlates: Renders should have been copied from IndustrialDisplayPlates, save the game, and disable IndustrialDisplayPlates for DisplayPlates to take over")
+      "DisplayPlates: Renders should have been copied from IndustrialDisplayPlates, save the game, and disable IndustrialDisplayPlates for DisplayPlates to take over"
+    )
   end
 end)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 remote.add_interface("DisplayPlates", {
-    get_sprite = function(event)
-        if event and event.entity and event.entity.valid then
-            local spritetype, spritename = get_render_sprite_info(event.entity)
-            return {
-                spritetype = spritetype,
-                spritename = spritename
-            }
-        else
-            return nil
-        end
-    end,
-
-    set_sprite = function(event)
-        if event and event.entity and event.entity.valid and event.sprite and game.is_valid_sprite_path(event.sprite) then
-            destroy_render(event.entity)
-            render_overlay_sprite(event.entity, event.sprite)
-        end
+  get_sprite = function(event)
+    if event and event.entity and event.entity.valid then
+      local spritetype, spritename = get_render_sprite_info(event.entity)
+      return {
+        spritetype = spritetype,
+        spritename = spritename,
+      }
+    else
+      return nil
     end
+  end,
+
+  set_sprite = function(event)
+    if event and event.entity and event.entity.valid and event.sprite and game.is_valid_sprite_path(event.sprite) then
+      destroy_render(event.entity)
+      render_overlay_sprite(event.entity, event.sprite)
+    end
+  end,
 })
