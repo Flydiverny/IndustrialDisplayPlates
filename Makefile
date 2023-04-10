@@ -8,7 +8,7 @@ GIT_VERSION := $(shell git describe --dirty --always | sed 's/-/./2' | sed 's/-/
 RELEASE_NAME := $(MOD_NAME)_$(VERSION)_$(GIT_VERSION)
 DIST_NAME := $(MOD_NAME)_$(VERSION)
 
-.PHONY: clean sync
+.PHONY: clean dist sync
 
 clean:
 	rm -rf dist/
@@ -20,7 +20,7 @@ dist: clean
 	cd dist; zip -9yrm $(DIST_NAME).zip $(DIST_NAME)
 
 sync: dist
-ifndef FACTORIO_MOD_DIR
-$(error FACTORIO_MOD_DIR is undefined)
-endif
+	ifndef FACTORIO_MOD_DIR
+		$(error FACTORIO_MOD_DIR is undefined)
+	endif
 	rsync -avr --delete dist/$(RELEASE_NAME)/ $(FACTORIO_MOD_DIR)/$(DIST_NAME)
