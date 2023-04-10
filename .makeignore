@@ -5,3 +5,8 @@ Makefile
 graphics/modportal
 dist
 *.zip
+desktop.ini
+.vscode
+.gitattributes
+.stylua.toml
+.github

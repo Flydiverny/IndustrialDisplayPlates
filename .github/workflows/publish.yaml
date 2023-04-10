@@ -1,0 +1,68 @@
+name: publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+        - master
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: set version
+        id: version
+        run: |
+          version=`jq -r '.version' < info.json`
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: set name
+        id: name
+        run: |
+          name=`jq -r '.name' < info.json`
+          echo "name=$name" >> $GITHUB_OUTPUT
+
+      - name: needs release
+        uses: actions/github-script@v6
+        id: check-release
+        env:
+          MOD_NAME: ${{ steps.name.outputs.name }}
+          MOD_VERSION: ${{ steps.version.outputs.version }}
+        with:
+          result-encoding: string
+          script: |
+            const { MOD_NAME: mod, MOD_VERSION: ver } = process.env
+            const res = await fetch(`https://mods.factorio.com/api/mods/${mod}/full`)
+            const { releases } = await res.json()
+
+            const found = releases.some(({ version }) => version === ver)
+            if (found) {
+              console.log("Release found for", ver)
+              core.setOutput('publish', 'false');
+              } else {
+              console.log("Release not found for", ver)
+              core.setOutput('publish', 'true');
+            }
+
+      - name: build
+        id: build
+        if: ${{ steps.check-release.outputs.publish == 'true' }}
+        run: |
+          make dist
+
+      - if: ${{ steps.check-release.outputs.publish == 'true' }}
+        run: npm i form-data
+
+      - name: upload
+        uses: flydiverny/github-typescript@v1
+        id: upload
+        if: ${{ steps.check-release.outputs.publish == 'true' }}
+        env:
+          MOD_NAME: ${{ steps.name.outputs.name }}
+          MOD_VERSION: ${{ steps.version.outputs.version }}
+          FACTORIO_MOD_API_KEY: ${{ secrets.FACTORIO_MOD_API_KEY }}
+        with:
+          result-encoding: string
+          script-file: .github/workflows/publish.mts
