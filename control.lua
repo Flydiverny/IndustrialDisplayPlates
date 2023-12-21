@@ -93,15 +93,31 @@ local function find_entity_render(entity)
   return nil
 end
 
+local function get_render_sprite_info_by_id(id)
+  local strings = splitstring(rendering.get_sprite(id), "/")
+  if #strings == 2 then
+    return strings[1], strings[2], get_map_type(strings[1])
+  end
+end
+
 local function get_render_sprite_info(entity)
   local id = find_entity_render(entity)
   if id then
-    local strings = splitstring(rendering.get_sprite(id), "/")
-    if #strings == 2 then
-      return strings[1], strings[2], get_map_type(strings[1])
-    end
+    return get_render_sprite_info_by_id(id)
   end
   return nil, nil
+end
+
+-- Returns table of entity -> sprite info
+local function get_all_render_sprite_info()
+  local all_renders = {}
+  for _, id in pairs(rendering.get_all_ids(DID.mod_name)) do
+    local entity = rendering.get_target(id).entity
+    if entity and entity.valid then
+      all_renders[entity.unit_number] = {get_render_sprite_info_by_id(id)}
+    end
+  end
+  return all_renders
 end
 
 local function gui_close(event)
@@ -524,12 +540,15 @@ script.on_event(defines.events.on_player_setup_blueprint, function(event)
       end
       return
     end
+    local all_renders = get_all_render_sprite_info()
     for index, entity in pairs(event.mapping.get()) do
-      local stype, sname = get_render_sprite_info(entity)
-      if stype and sname then
-        blueprint.set_blueprint_entity_tag(index, "display-plate-sprite-type", stype)
-        blueprint.set_blueprint_entity_tag(index, "display-plate-sprite-name", sname)
-        blueprint.set_blueprint_entity_tag(index, "display-plate-sprite-map-marker", get_has_map_marker(entity))
+      if entity.valid and is_a_display(entity) and all_renders[entity.unit_number] then
+        local stype, sname = table.unpack(all_renders[entity.unit_number])
+        if stype and sname then
+          blueprint.set_blueprint_entity_tag(index, "display-plate-sprite-type", stype)
+          blueprint.set_blueprint_entity_tag(index, "display-plate-sprite-name", sname)
+          blueprint.set_blueprint_entity_tag(index, "display-plate-sprite-map-marker", get_has_map_marker(entity))
+        end
       end
     end
   end
