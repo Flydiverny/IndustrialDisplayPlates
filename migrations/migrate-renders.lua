@@ -1,6 +1,6 @@
-if game.active_mods["IndustrialDisplayPlates"] then
+if script.active_mods["IndustrialDisplayPlates"] then
   local function render_overlay_sprite(entity, sprite)
-    if game.is_valid_sprite_path(sprite) then
+    if helpers.is_valid_sprite_path(sprite) then
       local size = (string.find(entity.name, "small") and 0.65) or (string.find(entity.name, "medium") and 1.5) or 2.5
       rendering.draw_sprite({
         sprite = sprite,
@@ -13,10 +13,10 @@ if game.active_mods["IndustrialDisplayPlates"] then
     end
   end
 
-  for _, id in pairs(rendering.get_all_ids("IndustrialDisplayPlates")) do
-    local entity = rendering.get_target(id).entity
-    local sprite = rendering.get_sprite(id)
-    rendering.destroy(id)
+  for _, object in pairs(rendering.get_all_objects("IndustrialDisplayPlates")) do
+    local entity = object.target.entity
+    local sprite = object.sprite
+    object.destroy()
     render_overlay_sprite(entity, sprite)
   end
 end

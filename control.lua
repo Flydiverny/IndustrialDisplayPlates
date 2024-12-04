@@ -13,17 +13,17 @@ local function get_gui(player_index)
 end
 
 local function get_global_player_info(player_index, info)
-  if global[info] == nil then
-    global[info] = {}
+  if storage[info] == nil then
+    storage[info] = {}
   end
-  return global[info][player_index]
+  return storage[info][player_index]
 end
 
 local function set_global_player_info(player_index, info, value)
-  if global[info] == nil then
-    global[info] = {}
+  if storage[info] == nil then
+    storage[info] = {}
   end
-  global[info][player_index] = value
+  storage[info][player_index] = value
 end
 
 local function splitstring(s, d)
@@ -85,18 +85,27 @@ local function remove_markers(entity)
 end
 
 local function find_entity_render(entity)
-  for _, id in pairs(rendering.get_all_ids(DID.mod_name)) do
-    if rendering.get_target(id).entity == entity then
-      return id
+  for _, object in pairs(rendering.get_all_objects(DID.mod_name)) do
+    if object.target == entity then
+      return object.id
+    end
+  end
+  return nil
+end
+
+local function find_render_object(entity)
+  for _, object in pairs(rendering.get_all_objects(DID.mod_name)) do
+    if object.target.entity == entity then
+      return object
     end
   end
   return nil
 end
 
 local function get_render_sprite_info(entity)
-  local id = find_entity_render(entity)
-  if id then
-    local strings = splitstring(rendering.get_sprite(id), "/")
+  local render_object = find_render_object(entity)
+  if render_object then
+    local strings = splitstring(render_object.sprite, "/")
     if #strings == 2 then
       return strings[1], strings[2], get_map_type(strings[1])
     end
@@ -114,7 +123,7 @@ local function gui_close(event)
 end
 
 local function render_overlay_sprite(entity, sprite)
-  if not game.is_valid_sprite_path(sprite) then
+  if not helpers.is_valid_sprite_path(sprite) then
     return
   end
 
@@ -134,9 +143,9 @@ local function render_overlay(entity, spritetype, spritename)
 end
 
 local function destroy_render(entity)
-  local last_id = find_entity_render(entity)
-  if last_id then
-    rendering.destroy(last_id)
+  local render_object = find_render_object(entity)
+  if render_object then
+    render_object.destroy()
   end
 end
 
@@ -234,7 +243,7 @@ local function gui_elem_changed(event)
   end
 
   local spritename = event.element.elem_value.name or ""
-  local typename = event.element.elem_value.type or ""
+  local typename = event.element.elem_value.type or "item"
   local spritetype = typename == "virtual" and "virtual-signal" or typename
   local sprite = spritetype .. "/" .. spritename
 
@@ -339,7 +348,7 @@ local function create_display_gui(player, selected)
     style = "draggable_space_header",
   })
   filler.style.natural_height = 24
-  filler.style.minimal_width = 32
+  filler.style.minimal_width = 48
   filler.style.horizontally_stretchable = true
   filler.drag_target = frame
 
@@ -348,7 +357,7 @@ local function create_display_gui(player, selected)
     name = "display-header-close",
     type = "sprite-button",
     style = "display_small_button",
-    sprite = "utility/close_white",
+    sprite = "utility/close",
     tooltip = { "controls.close-gui" },
   })
 
@@ -446,14 +455,14 @@ script.on_event(defines.events.on_robot_mined_entity, event_raised_destroy, get_
 script.on_event(defines.events.on_entity_died, event_raised_destroy, get_display_event_filter())
 
 script.on_event(defines.events.on_built_entity, function(event)
-  if event.tags and event.created_entity and event.created_entity.valid then
-    set_up_display_from_ghost(event.created_entity, event.tags)
+  if event.tags and event.entity and event.entity.valid then
+    set_up_display_from_ghost(event.entity, event.tags)
   end
 end, get_display_event_filter())
 
 script.on_event(defines.events.on_robot_built_entity, function(event)
-  if event.tags and event.created_entity and event.created_entity.valid then
-    set_up_display_from_ghost(event.created_entity, event.tags)
+  if event.tags and event.entity and event.entity.valid then
+    set_up_display_from_ghost(event.entity, event.tags)
   end
 end, get_display_event_filter())
 
@@ -552,7 +561,7 @@ script.on_event(defines.events.on_player_changed_position, function(event)
 end)
 
 script.on_event(defines.events.on_player_joined_game, function(event)
-  if game.active_mods["IndustrialDisplayPlates"] then
+  if script.active_mods["IndustrialDisplayPlates"] then
     game.print(
       "DisplayPlates: Renders should have been copied from IndustrialDisplayPlates, save the game, and disable IndustrialDisplayPlates for DisplayPlates to take over"
     )
@@ -575,7 +584,7 @@ remote.add_interface("DisplayPlates", {
   end,
 
   set_sprite = function(event)
-    if event and event.entity and event.entity.valid and event.sprite and game.is_valid_sprite_path(event.sprite) then
+    if event and event.entity and event.entity.valid and event.sprite and helpers.is_valid_sprite_path(event.sprite) then
       destroy_render(event.entity)
       render_overlay_sprite(event.entity, event.sprite)
     end

@@ -1,10 +1,10 @@
 {
   "name": "DisplayPlates",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "title": "Display Plates - Ground Signs & Map Markers",
   "author": "Flydiverny",
   "homepage": "https://github.com/Flydiverny/IndustrialDisplayPlates",
   "dependencies": ["base >= 1.1.0", "? IndustrialRevolution"],
   "description": "Big, medium and small signs (\"plates\") which display item and fluid icons. Display plates can be set to create a matching map marker at the location of the display plate. Can be used with blueprints, (except updating blueprints)",
-  "factorio_version": "1.1"
+  "factorio_version": "2.0"
 }
