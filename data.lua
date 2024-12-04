@@ -71,7 +71,6 @@ for display, displaydata in pairs(DID.displays) do
       render_layer = "lower-object",
       icon = get_icon_path(display),
       icon_size = DID.icon_size,
-      icon_mipmaps = DID.icon_mipmaps,
       corpse = "small-remnants",
       fast_replaceable_group = "display",
       minable = {
@@ -82,7 +81,9 @@ for display, displaydata in pairs(DID.displays) do
       flags = { "placeable-player", "placeable-neutral", "player-creation" },
       collision_box = { { -box_size + 0.1, -box_size + 0.1 }, { box_size - 0.1, box_size - 0.1 } },
       selection_box = { { -box_size, -box_size }, { box_size, box_size } },
-      collision_mask = { "object-layer", "water-tile" },
+      -- collision_mask = {
+      --   layers = {{ "object-layer", "water-tile" }}
+      -- },
       open_sound = {
         filename = DID.base_sound_path .. "/machine-open.ogg",
         volume = 0.5,
@@ -129,15 +130,15 @@ for display, displaydata in pairs(DID.displays) do
       stack_size = 100,
       icon = get_icon_path(display),
       icon_size = DID.icon_size,
-      icon_mipmaps = DID.icon_mipmaps,
       place_result = display,
     },
     {
       type = "recipe",
       name = display,
       order = "z[" .. count .. "]",
-      result = display,
-      result_count = 1,
+      results = {
+          { type = "item", name = display, amount = 1 }
+      },
       category = "crafting",
       enabled = (mods["IndustrialRevolution"] and (displaydata.IR_unlock == nil))
         or (not mods["IndustrialRevolution"] and displaydata.unlock == nil),
@@ -166,7 +167,7 @@ add_styles({
       left_padding = 0,
       right_padding = 0,
       horizontal_align = "center",
-      type = "horizontal_flow_style",
+      type = "table_style",
     },
     tab_content_frame = {
       bottom_padding = 8,
@@ -221,7 +222,7 @@ add_styles({
   },
   display_button_selected = {
     type = "button_style",
-    parent = "quick_bar_slot_button",
+    parent = "quick_bar_page_button",
     default_graphical_set = data.raw["gui-style"]["default"]["slot_button"].selected_graphical_set,
   },
   display_fake_header = {

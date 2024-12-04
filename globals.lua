@@ -6,38 +6,38 @@
 return {
   displays = {
     ["copper-display-small"] = {
-      ingredients = { { "copper-plate", 1 } },
+      ingredients = {{ type="item", name="copper-plate", amount=1 }},
     },
     ["copper-display-medium"] = {
-      ingredients = { { "copper-plate", 4 } },
+      ingredients = {{ type="item", name="copper-plate", amount=4 }},
     },
     ["copper-display"] = {
-      ingredients = { { "copper-plate", 9 } },
+      ingredients = {{ type="item", name="copper-plate", amount=9 }},
     },
     ["iron-display-small"] = {
-      ingredients = { { "iron-plate", 1 } },
+      ingredients = {{ type="item", name="iron-plate", amount=1 }},
       IR_unlock = "ir2-iron-milestone",
     },
     ["iron-display-medium"] = {
-      ingredients = { { "iron-plate", 4 } },
+      ingredients = {{ type="item", name="iron-plate", amount=4 }},
       IR_unlock = "ir2-iron-milestone",
     },
     ["iron-display"] = {
-      ingredients = { { "iron-plate", 9 } },
+      ingredients = {{ type="item", name="iron-plate", amount=9 }},
       IR_unlock = "ir2-iron-milestone",
     },
     ["steel-display-small"] = {
-      ingredients = { { "steel-plate", 1 } },
+      ingredients = {{ type="item", name="steel-plate", amount=1 }},
       unlock = "steel-processing",
       IR_unlock = "ir2-steel-milestone",
     },
     ["steel-display-medium"] = {
-      ingredients = { { "steel-plate", 4 } },
+      ingredients = {{ type="item", name="steel-plate", amount=4 }},
       unlock = "steel-processing",
       IR_unlock = "ir2-steel-milestone",
     },
     ["steel-display"] = {
-      ingredients = { { "steel-plate", 9 } },
+      ingredients = {{ type="item", name="steel-plate", amount=9 }},
       unlock = "steel-processing",
       IR_unlock = "ir2-steel-milestone",
     },
